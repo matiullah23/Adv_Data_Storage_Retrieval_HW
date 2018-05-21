@@ -1,7 +1,5 @@
-from flask import Flask
+from flask import Flask, jsonify
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
 import numpy as np
 import datetime as dt
 import json
@@ -11,16 +9,16 @@ from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, func, inspect, distinct, desc, select
 
 #create engine to connect to database
-engine = create_engine("sqlite:///_HI.sqlite")
-connection = engine.connect()
+engine = create_engine("sqlite:///hawaii.sqlite")
+#connection = engine.connect()
 
 #declare a base
 Base = automap_base()
 
 Base.prepare(engine, reflect=True)
 
-measurements = Base.classes.measurements
-stations = Base.classes.stations
+measurements = Base.classes.measurement
+stations = Base.classes.station
 
 #create a session
 session = Session(engine)
@@ -47,7 +45,7 @@ def precipitation():
     order_by(desc(measurements.date)).limit(365).all()
 
     for result in results:
-         [(prcp_list), (prcp_date_list)]
+         [(prcp_date_list),(prcp_list)]
 
     return jsonify(results)
 
@@ -55,26 +53,29 @@ def precipitation():
 @app.route('/api/v.1.0/stations')
 def stations():
     """List of Stations with their Number of Observations"""
-    return'active = session.query(measurements.station,
-    func.count(measurements.station).label('qty')
-    ).group_by(measurements.station
-    ).order_by(desc('qty')).all()
-active'
+    results = session.query(measurements.station).\
+    func.count(measurements.station).label('qty').\
+    group_by(measurements.station).\
+    order_by(desc('qty')).all()
+
+    return jsonify(results)
 
 @app.route('/api/v.1.0/tobs')
 def tobs():
-    return'temp_list = session.query(measurements.tobs).\
-filter_by(station='USC00519281').\
-group_by(measurements.date).\
-order_by(desc(measurements.date)).limit(365).all()
+    temp_list = session.query(measurements.tobs).\
+    filter_by(station='USC00519281').\
+    group_by(measurements.date).\
+    order_by(desc(measurements.date)).limit(365).all()
 
-temp_date_list = session.query(measurements.date).\
-group_by(measurements.date).\
-order_by(desc(measurements.date)).limit(365).all()
+    temp_date_list = session.query(measurements.date).\
+    group_by(measurements.date).\
+    order_by(desc(measurements.date)).limit(365).all()
 
-initial_tobs_df = pd.DataFrame(temp_date_list).join(pd.DataFrame(temp_list))
-temp_df = initial_tobs_df.set_index('date')
-temp_df.head()'
+    initial_tobs_df = pd.DataFrame(temp_date_list).join(pd.DataFrame(temp_list))
+    temp_df = initial_tobs_df.set_index('date')
+    temp_df.head()
+
+    return jsonify(temp_df)
 
 @app.route('/api/v.1.0/start')
 def start():
