@@ -30,7 +30,7 @@ def index():
     return '<h1> Welcome to my Weather App!</h1>'
 
 
-
+# In this route, the "results" variable needs to be defined.
 @app.route('/api/v.1.0/precipitation')
 def precipitation():
     """Query for the dates and temperature observations from the last year"""
@@ -44,12 +44,16 @@ def precipitation():
     group_by(measurements.date).\
     order_by(desc(measurements.date)).limit(365).all()
 
-    for result in results:
-         [(prcp_date_list),(prcp_list)]
+    initial_prcp_df = pd.DataFrame(prcp_date_list).join(pd.DataFrame(prcp_list))
+    prcp_df = initial_prcp_df.set_index('date')
+    prcp_df.head(5)
 
-    return jsonify(results)
+    # for result in results:
+    #      [(prcp_date_list),(prcp_list)]
+    #
+    return jsonify(initial_prcp_df)
 
-
+#
 @app.route('/api/v.1.0/stations')
 def stations():
     """List of Stations with their Number of Observations"""
@@ -63,13 +67,13 @@ def stations():
 @app.route('/api/v.1.0/tobs')
 def tobs():
     temp_list = session.query(measurements.tobs).\
-    filter_by(station='USC00519281').\
-    group_by(measurements.date).\
-    order_by(desc(measurements.date)).limit(365).all()
+        filter_by(station='USC00519281').\
+        group_by(measurements.date).\
+        order_by(desc(measurements.date)).limit(365).all()
 
     temp_date_list = session.query(measurements.date).\
-    group_by(measurements.date).\
-    order_by(desc(measurements.date)).limit(365).all()
+        group_by(measurements.date).\
+        order_by(desc(measurements.date)).limit(365).all()
 
     initial_tobs_df = pd.DataFrame(temp_date_list).join(pd.DataFrame(temp_list))
     temp_df = initial_tobs_df.set_index('date')
